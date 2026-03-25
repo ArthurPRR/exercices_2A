@@ -1,0 +1,11 @@
+name: bubble_sort
+tags: array int sorting
+description: "Sort an array of integers in ascending order using bubble sort."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

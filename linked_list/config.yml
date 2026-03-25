@@ -1,0 +1,12 @@
+name: linked_list
+tags: linked-list pointer struct malloc
+description: "Implement basic operations on a singly linked list: insert at head, get length, check membership, and free."
+timeout: 5
+distributes:
+  - test.o
+  - skeleton.c
+  - list.h
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"
