@@ -1,0 +1,11 @@
+name: binary_search
+tags: array int search
+description: "Find the index of a target value in a sorted array using binary search. Return -1 if not found."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"
