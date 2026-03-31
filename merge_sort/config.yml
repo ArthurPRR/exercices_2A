@@ -1,0 +1,11 @@
+name: merge_sort
+tags: array int sorting divide-and-conquer
+description: "Sort an array in ascending order using merge sort (divide and conquer algorithm with O(n log n) complexity)."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

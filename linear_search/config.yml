@@ -1,0 +1,11 @@
+name: linear_search
+tags: array int search
+description: "Find the index of the first occurrence of a target value in an unsorted array using linear search. Return -1 if not found."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

@@ -1,0 +1,11 @@
+name: insertion_sort
+tags: array int sorting
+description: "Sort an array in ascending order using insertion sort (O(n²) algorithm)."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

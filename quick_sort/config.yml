@@ -1,0 +1,11 @@
+name: quick_sort
+tags: array int sorting divide-and-conquer
+description: "Sort an array in ascending order using quick sort (in-place algorithm with O(n log n) average complexity)."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"
