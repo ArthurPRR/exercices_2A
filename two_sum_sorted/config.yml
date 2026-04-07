@@ -1,0 +1,11 @@
+name: two_sum_sorted
+tags: array int search two-pointers
+description: "Determine whether two distinct values in a sorted array sum to a target."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

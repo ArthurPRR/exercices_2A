@@ -1,0 +1,11 @@
+name: search_rotated_array
+tags: array int search binary-search
+description: "Search for a target value in a sorted array rotated at an unknown pivot."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

@@ -5,6 +5,9 @@
 #define RED   "\033[31m"
 #define RESET "\033[0m"
 
+#define LARGE_LEN 10000000
+#define LARGE_REPEATS 3
+
 extern int binary_search(int len, int arr[len], int target);
 
 static int binary_search_corr(int len, int arr[len], int target)
@@ -52,6 +55,39 @@ static void run_test(int len, int arr[len], int target, int *passed, int *total)
     }
 }
 
+static void run_large_test(int *passed, int *total)
+{
+    (*total)++;
+
+    int *arr = malloc(sizeof(int) * LARGE_LEN);
+    if (arr == NULL) {
+        printf(RED "Large test skipped: allocation failed\n" RESET);
+        return;
+    }
+
+    for (int i = 0; i < LARGE_LEN; i++)
+        arr[i] = i * 2;
+
+    int ok = 1;
+    for (int i = 0; i < LARGE_REPEATS; i++) {
+        int res = binary_search(LARGE_LEN, arr, -1);
+        if (res != -1) {
+            ok = 0;
+            break;
+        }
+    }
+
+    if (ok) {
+        (*passed)++;
+    } else {
+        printf(RED "Test %d FAILED\n" RESET, *total);
+        printf("Expected: -1 (not found)\n");
+        printf("Received: search returned a value different from -1\n\n");
+    }
+
+    free(arr);
+}
+
 int main()
 {
     int passed = 0;
@@ -76,6 +112,8 @@ int main()
     run_test(7, arr4, -10, &passed, &total); /* negative, found at start */
     run_test(7, arr4,  15, &passed, &total); /* found near end */
     run_test(7, arr4,   7, &passed, &total); /* not found */
+
+    run_large_test(&passed, &total); /* practical stress test against linear scans */
 
     printf("\n");
 

@@ -1,0 +1,11 @@
+name: remove_duplicates_sorted
+tags: array int in-place
+description: "Remove duplicates from a sorted array in place and return the new length."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"

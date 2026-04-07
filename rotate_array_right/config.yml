@@ -1,0 +1,11 @@
+name: rotate_array_right
+tags: array int transformation
+description: "Rotate an array in place to the right by k positions."
+timeout: 3
+distributes:
+  - test.o
+  - skeleton.c
+  - Makefile
+commands:
+  prepare: "make prepare"
+  validate: "make test"
