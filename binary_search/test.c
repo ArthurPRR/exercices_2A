@@ -1,14 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "trace.h"
+
 #define GREEN "\033[32m"
 #define RED   "\033[31m"
 #define RESET "\033[0m"
 
-#define LARGE_LEN 10000000
-#define LARGE_REPEATS 3
+#define LARGE_LEN 1000000
 
 extern int binary_search(int len, int arr[len], int target);
+
+bs_trace_t bs_trace = {0};
 
 static int binary_search_corr(int len, int arr[len], int target)
 {
@@ -27,12 +30,40 @@ static int binary_search_corr(int len, int arr[len], int target)
     return -1;
 }
 
+static int binary_search_expected_trace(int len, int arr[len], int target, int indices[BS_TRACE_CAP])
+{
+    if (len <= 0)
+        return 0;
+
+    int lo = 0, hi = len - 1;
+    int count = 0;
+    while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (count < BS_TRACE_CAP)
+            indices[count] = mid;
+        count++;
+
+        if (arr[mid] == target)
+            return count;
+        else if (arr[mid] < target)
+            lo = mid + 1;
+        else
+            hi = mid - 1;
+    }
+
+    return count;
+}
+
 static void run_test(int len, int arr[len], int target, int *passed, int *total)
 {
     (*total)++;
 
+    bs_trace_reset();
+
     int res_stu = binary_search(len, arr, target);
     int res_corr = binary_search_corr(len, arr, target);
+    int expected_trace[BS_TRACE_CAP];
+    int expected_reads = binary_search_expected_trace(len, arr, target, expected_trace);
 
     /* Accept any valid index pointing to the target value,
        or -1 when the target is absent. */
@@ -44,36 +75,10 @@ static void run_test(int len, int arr[len], int target, int *passed, int *total)
     }
 
     if (ok) {
-        (*passed)++;
-    } else {
-        printf(RED "Test %d FAILED\n" RESET, *total);
-        if (res_corr == -1)
-            printf("Expected: -1 (not found)\n");
-        else
-            printf("Expected: a valid index i such that arr[i] == %d\n", target);
-        printf("Received: %d\n\n", res_stu);
-    }
-}
-
-static void run_large_test(int *passed, int *total)
-{
-    (*total)++;
-
-    int *arr = malloc(sizeof(int) * LARGE_LEN);
-    if (arr == NULL) {
-        printf(RED "Large test skipped: allocation failed\n" RESET);
-        return;
-    }
-
-    for (int i = 0; i < LARGE_LEN; i++)
-        arr[i] = i * 2;
-
-    int ok = 1;
-    for (int i = 0; i < LARGE_REPEATS; i++) {
-        int res = binary_search(LARGE_LEN, arr, -1);
-        if (res != -1) {
-            ok = 0;
-            break;
+        ok = (bs_trace.reads == expected_reads);
+        for (int i = 0; ok && i < expected_reads; i++) {
+            if (bs_trace.indices[i] != expected_trace[i])
+                ok = 0;
         }
     }
 
@@ -81,11 +86,20 @@ static void run_large_test(int *passed, int *total)
         (*passed)++;
     } else {
         printf(RED "Test %d FAILED\n" RESET, *total);
-        printf("Expected: -1 (not found)\n");
-        printf("Received: search returned a value different from -1\n\n");
+        if (res_corr == -1)
+            printf("Expected: -1 (not found)\n");
+        else
+            printf("Expected: a valid index i such that arr[i] == %d\n", target);
+        printf("Received: %d\n", res_stu);
+        printf("Trace reads: %d\n", bs_trace.reads);
+        printf("Expected trace: ");
+        for (int i = 0; i < expected_reads; i++)
+            printf("%d ", expected_trace[i]);
+        printf("\nReceived trace: ");
+        for (int i = 0; i < bs_trace.reads && i < BS_TRACE_CAP; i++)
+            printf("%d ", bs_trace.indices[i]);
+        printf("\n\n");
     }
-
-    free(arr);
 }
 
 int main()
@@ -113,7 +127,13 @@ int main()
     run_test(7, arr4,  15, &passed, &total); /* found near end */
     run_test(7, arr4,   7, &passed, &total); /* not found */
 
-    run_large_test(&passed, &total); /* practical stress test against linear scans */
+    int *arr5 = malloc(sizeof(int) * LARGE_LEN);
+    if (arr5 != NULL) {
+        for (int i = 0; i < LARGE_LEN; i++)
+            arr5[i] = i * 2;
+        run_test(LARGE_LEN, arr5, -1, &passed, &total);
+        free(arr5);
+    }
 
     printf("\n");
 

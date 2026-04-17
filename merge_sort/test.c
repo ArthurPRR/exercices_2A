@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define LARGE_LEN 50000
+
 #define GREEN "\033[32m"
 #define RED   "\033[31m"
 #define RESET "\033[0m"
@@ -85,6 +87,60 @@ static void run_test(int len, int input[len], int *passed, int *total)
     }
 }
 
+static unsigned int next_value(unsigned int *state)
+{
+    *state ^= *state << 13;
+    *state ^= *state >> 17;
+    *state ^= *state << 5;
+    return *state;
+}
+
+static void run_large_test(int *passed, int *total)
+{
+    (*total)++;
+
+    int *input = malloc(sizeof(int) * LARGE_LEN);
+    int *stu = malloc(sizeof(int) * LARGE_LEN);
+    int *corr = malloc(sizeof(int) * LARGE_LEN);
+    if (input == NULL || stu == NULL || corr == NULL) {
+        printf(RED "Large test skipped: allocation failed\n" RESET);
+        free(input);
+        free(stu);
+        free(corr);
+        return;
+    }
+
+    unsigned int state = 123456789u;
+    for (int i = 0; i < LARGE_LEN; i++) {
+        int value = (int)(next_value(&state) % 1000000u) - 500000;
+        input[i] = value;
+        stu[i] = value;
+        corr[i] = value;
+    }
+
+    merge_sort(LARGE_LEN, stu);
+    merge_sort_corr(LARGE_LEN, corr);
+
+    int ok = 1;
+    for (int i = 0; i < LARGE_LEN; i++) {
+        if (stu[i] != corr[i]) {
+            ok = 0;
+            break;
+        }
+    }
+
+    if (ok) {
+        (*passed)++;
+    } else {
+        printf(RED "Test %d FAILED\n" RESET, *total);
+        printf("Large stress test mismatch\n");
+    }
+
+    free(input);
+    free(stu);
+    free(corr);
+}
+
 int main(void)
 {
     int passed = 0, total = 0;
@@ -120,6 +176,8 @@ int main(void)
     // Test 8: Large array
     int test8[] = {64, 34, 25, 12, 22, 11, 90, 88, 45, 50};
     run_test(10, test8, &passed, &total);
+
+    run_large_test(&passed, &total);
 
     printf(GREEN "%d/%d tests passed\n" RESET, passed, total);
     return passed == total ? 0 : 1;

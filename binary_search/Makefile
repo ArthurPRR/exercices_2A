@@ -5,10 +5,12 @@ test:
 	gcc test.o skeleton.o -o binaire_test
 	./binaire_test
 
+check: prepare test
+
 test.o: test.c
 	gcc -Wall -Werror -c test.c -o test.o
 
 clean:
 	rm -f *.o binaire_test
 
-.PHONY: test prepare clean
+.PHONY: test check prepare clean

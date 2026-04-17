@@ -8,4 +8,4 @@ distributes:
   - Makefile
 commands:
   prepare: "make prepare"
-  validate: "make test"
+  validate: "make check"

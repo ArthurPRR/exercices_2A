@@ -5,7 +5,8 @@ timeout: 3
 distributes:
   - test.o
   - skeleton.c
+  - trace.h
   - Makefile
 commands:
   prepare: "make prepare"
-  validate: "make test"
+  validate: "make check"

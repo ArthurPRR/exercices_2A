@@ -1,11 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "trace.h"
+
+#define LARGE_LEN 100000
+
 #define GREEN "\033[32m"
 #define RED   "\033[31m"
 #define RESET "\033[0m"
 
 extern int two_sum_sorted(int len, int arr[len], int target);
+
+ts_trace_t ts_trace = {0};
 
 static int two_sum_sorted_corr(int len, int arr[], int target)
 {
@@ -26,9 +32,38 @@ static int two_sum_sorted_corr(int len, int arr[], int target)
     return 0;
 }
 
+static int two_sum_sorted_expected_trace(int len, int arr[], int target, int indices[TS_TRACE_CAP])
+{
+    if (len <= 1)
+        return 0;
+
+    int left = 0;
+    int right = len - 1;
+    int count = 0;
+    while (left < right) {
+        if (count < TS_TRACE_CAP)
+            indices[count] = left;
+        count++;
+        if (count < TS_TRACE_CAP)
+            indices[count] = right;
+        count++;
+
+        int sum = arr[left] + arr[right];
+        if (sum == target)
+            return count;
+        if (sum < target)
+            left++;
+        else
+            right--;
+    }
+    return count;
+}
+
 static void run_test(int len, int input[len], int target, int expected, int *passed, int *total)
 {
     (*total)++;
+
+    ts_trace_reset();
 
     int sz = len > 0 ? len : 1;
     int stu[sz], corr[sz];
@@ -39,7 +74,17 @@ static void run_test(int len, int input[len], int target, int expected, int *pas
 
     int res_stu = two_sum_sorted(len, stu, target);
     int res_corr = two_sum_sorted_corr(len, corr, target);
+    int expected_trace[TS_TRACE_CAP];
+    int expected_reads = two_sum_sorted_expected_trace(len, corr, target, expected_trace);
+
     int ok = (res_stu == expected && res_corr == expected);
+    if (ok) {
+        ok = (ts_trace.reads == expected_reads);
+        for (int i = 0; ok && i < expected_reads; i++) {
+            if (ts_trace.indices[i] != expected_trace[i])
+                ok = 0;
+        }
+    }
 
     if (ok) {
         (*passed)++;
@@ -47,7 +92,45 @@ static void run_test(int len, int input[len], int target, int expected, int *pas
         printf(RED "Test %d FAILED\n" RESET, *total);
         printf("Expected: %d\n", expected);
         printf("Got: %d\n", res_stu);
+        printf("Trace reads: %d\n", ts_trace.reads);
     }
+}
+
+static void run_large_test(int *passed, int *total)
+{
+    (*total)++;
+
+    int *arr = malloc(sizeof(int) * LARGE_LEN);
+    if (arr == NULL) {
+        printf(RED "Large test skipped: allocation failed\n" RESET);
+        return;
+    }
+
+    for (int i = 0; i < LARGE_LEN; i++)
+        arr[i] = i;
+
+    int res_stu = two_sum_sorted(LARGE_LEN, arr, -1);
+    int res_corr = two_sum_sorted_corr(LARGE_LEN, arr, -1);
+    int expected_trace[TS_TRACE_CAP];
+    int expected_reads = two_sum_sorted_expected_trace(LARGE_LEN, arr, -1, expected_trace);
+    int ok = (res_stu == res_corr && res_corr == 0);
+    if (ok) {
+        ok = (ts_trace.reads == expected_reads);
+        for (int i = 0; ok && i < expected_reads; i++) {
+            if (ts_trace.indices[i] != expected_trace[i])
+                ok = 0;
+        }
+    }
+
+    if (ok) {
+        (*passed)++;
+    } else {
+        printf(RED "Test %d FAILED\n" RESET, *total);
+        printf("Expected: 0\n");
+        printf("Got: %d\n", res_stu);
+    }
+
+    free(arr);
 }
 
 int main(void)
@@ -77,6 +160,8 @@ int main(void)
 
     int test8[] = {-8, -5, -2, 1, 4, 9};
     run_test(6, test8, -1, 1, &passed, &total);
+
+    run_large_test(&passed, &total);
 
     printf(GREEN "%d/%d tests passed\n" RESET, passed, total);
     return passed == total ? 0 : 1;
